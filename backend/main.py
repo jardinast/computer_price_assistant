@@ -594,5 +594,6 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.environ.get("PORT", 8000))
-    reload_flag = os.environ.get("UVICORN_RELOAD", "true").lower() == "true"
-    uvicorn.run(app, host="0.0.0.0", port=port, reload=reload_flag)
+    reload_flag = os.environ.get("UVICORN_RELOAD", "false").lower() == "true"
+    uvicorn_app = "backend.main:app" if reload_flag else app
+    uvicorn.run(uvicorn_app, host="0.0.0.0", port=port, reload=reload_flag)
