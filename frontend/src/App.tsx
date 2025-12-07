@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import MarketOverview from './pages/MarketOverview';
 import PricePredictor from './pages/PricePredictor';
+// @ts-ignore
 import ChatAdvisor from './pages/ChatAdvisor';
 import SimilarLaptops from './pages/SimilarLaptops';
 

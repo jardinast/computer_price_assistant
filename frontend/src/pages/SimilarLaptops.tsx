@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { Loader2, Search, Laptop, ChevronDown, ChevronUp } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Loader2, Search, Laptop } from 'lucide-react';
 import { findSimilarLaptops } from '../services/api';
 import type { SimilarLaptop } from '../types';
 
@@ -61,16 +61,6 @@ export default function SimilarLaptops() {
   };
 
   const maxDistance = results.length > 0 ? Math.max(...results.map((r) => r.distance)) : 1;
-
-  // Prepare radar chart data
-  const radarData = results.length > 0
-    ? [
-        { metric: 'Price', target: formData.price_target / 100, ...Object.fromEntries(results.map((r, i) => [`laptop${i}`, r.price / 100])) },
-        { metric: 'RAM', target: formData.ram_gb, ...Object.fromEntries(results.map((r, i) => [`laptop${i}`, r.ram_gb || 0])) },
-        { metric: 'Storage', target: formData.ssd_gb / 100, ...Object.fromEntries(results.map((r, i) => [`laptop${i}`, (r.ssd_gb || 0) / 100])) },
-        { metric: 'Screen', target: formData.screen_size, ...Object.fromEntries(results.map((r, i) => [`laptop${i}`, r.screen_size || 0])) },
-      ]
-    : [];
 
   return (
     <div className="space-y-6">

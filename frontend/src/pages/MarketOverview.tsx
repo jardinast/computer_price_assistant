@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter, Legend } from 'recharts';
-import { Loader2, TrendingUp, Package, Cpu, Monitor } from 'lucide-react';
+import { Loader2, TrendingUp, Package } from 'lucide-react';
 import { getStatistics, getClusters, getStatsByCategory } from '../services/api';
 import type { MarketStatistics, ClusterData } from '../types';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Loader2, Calculator, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Loader2, Calculator, Info } from 'lucide-react';
 import { predictPrice } from '../services/api';
 import type { PredictionRequest, PredictionResponse } from '../types';
 
