@@ -100,6 +100,28 @@ npm run dev
 ```
 The frontend will be available at `http://localhost:5173`
 
+### Production Deployment (Railway)
+
+1. **Configure env variables**
+   - Copy `.env.production.example` to `.env.production` and set `VITE_API_TARGET` to your deployed backend URL (include `/api`, e.g. `https://my-backend.up.railway.app/api`).
+   - Railway will read this variable during the build, so also add `VITE_API_TARGET` to the frontend service's variables in the Railway dashboard.
+
+2. **Build the frontend**
+   ```bash
+   cd computer-price-predictor/frontend
+   npm install
+   npm run build
+   ```
+
+3. **Deploy a static service**
+   - Create a new Railway service pointing to `computer-price-predictor/frontend`.
+   - Install command: `npm install`
+   - Build command: `npm run build`
+   - Start command: `npx serve -s dist -l $PORT` (or any static file server binding to `$PORT`).
+
+4. **Verify connectivity**
+   - Open the frontend's Railway URL and ensure API requests hit your backend domain (inspect browser dev tools → Network).
+
 ### API Endpoints
 
 | Endpoint | Method | Description |
@@ -181,5 +203,4 @@ computer-price-predictor/
 ## License
 
 This project was created as part of the DAI Assignment 2.
-
 
