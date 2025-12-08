@@ -151,12 +151,6 @@ class ChatResponse(BaseModel):
 # API ENDPOINTS
 # =============================================================================
 
-@app.get("/")
-async def root():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "Computer Price Predictor API"}
-
-
 @app.get("/api/health")
 async def health_check():
     """Detailed health check."""
@@ -577,6 +571,11 @@ Just tell me about your needs, and I'll help you find the right specs and price 
 static_path = Path(__file__).parent.parent / "static"
 if static_path.exists():
     app.mount("/assets", StaticFiles(directory=static_path / "assets"), name="assets")
+
+    @app.get("/")
+    async def serve_root():
+        """Serve the React SPA for root path."""
+        return FileResponse(static_path / "index.html")
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
