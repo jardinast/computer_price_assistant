@@ -6,9 +6,9 @@ __pycache__/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# Trained models (binary files)
-models/*.pkl
-models/*.joblib
+# Trained models - KEEP these for deployment
+# models/*.pkl
+# models/*.joblib
 
 # Data files (uncomment to exclude from tracking)
 data/*.csv
