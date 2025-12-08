@@ -105,6 +105,7 @@ The frontend will be available at `http://localhost:5173`
 1. **Configure env variables**
    - Copy `.env.production.example` to `.env.production` and set `VITE_API_TARGET` to your deployed backend URL (include `/api`, e.g. `https://my-backend.up.railway.app/api`).
    - Railway will read this variable during the build, so also add `VITE_API_TARGET` to the frontend service's variables in the Railway dashboard.
+   - On the backend service, set `FRONTEND_URL=https://<your-frontend>.up.railway.app` so CORS allows the deployed SPA.
 
 2. **Build the frontend**
    ```bash
@@ -203,4 +204,3 @@ computer-price-predictor/
 ## License
 
 This project was created as part of the DAI Assignment 2.
-
