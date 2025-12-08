@@ -17,8 +17,7 @@ import {
   Zap,
 } from 'lucide-react'
 import axios from 'axios'
-
-const API_BASE = '/api'
+import { API_BASE } from '../config'
 
 function OfferCard({ offer, predictedPrice, index }) {
   const priceDiff = offer.price_difference
@@ -474,5 +473,4 @@ export default function SimilarOffers() {
     </div>
   )
 }
-
 

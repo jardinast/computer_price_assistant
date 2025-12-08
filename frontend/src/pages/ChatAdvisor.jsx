@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { Send, Loader2, Key, MessageSquare, Trash2 } from 'lucide-react'
 import axios from 'axios'
+import { API_BASE } from '../config'
 
 const API = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
 })
 

@@ -7,8 +7,7 @@ import type {
   SimilarLaptop,
   ChatMessage,
 } from '../types';
-
-const API_BASE = import.meta.env.VITE_API_TARGET || '/api';
+import { API_BASE } from '../config';
 
 const api = axios.create({
   baseURL: API_BASE,

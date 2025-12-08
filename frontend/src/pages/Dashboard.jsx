@@ -27,8 +27,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import axios from 'axios'
-
-const API_BASE = '/api'
+import { API_BASE } from '../config'
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#d946ef', '#06b6d4', '#f59e0b', '#10b981']
 const CLUSTER_COLORS = ['#ef4444', '#f59e0b', '#10b981', '#0ea5e9', '#8b5cf6']
@@ -502,5 +501,4 @@ export default function Dashboard() {
     </div>
   )
 }
-
 

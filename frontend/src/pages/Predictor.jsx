@@ -28,8 +28,7 @@ import {
   Sliders,
 } from 'lucide-react'
 import axios from 'axios'
-
-const API_BASE = '/api'
+import { API_BASE } from '../config'
 
 const USE_CASE_INFO = {
   general: { label: 'General Use', icon: Laptop, color: 'primary', description: 'Everyday tasks, browsing, office work' },
@@ -744,4 +743,3 @@ export default function Predictor() {
     </div>
   )
 }
-
