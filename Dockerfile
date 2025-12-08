@@ -39,9 +39,12 @@ COPY --from=frontend-builder /app/frontend/dist ./static
 # Expose FastAPI port
 EXPOSE 8000
 
-# Health check (uses PORT env var, defaults to 8000)
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
+# Set default port
+ENV PORT=8000
 
-# Run FastAPI with uvicorn (use shell form for $PORT expansion)
-CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
+# Run FastAPI with uvicorn - use Python to handle PORT
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"]
