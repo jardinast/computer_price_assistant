@@ -10,9 +10,9 @@ __pycache__/
 # models/*.pkl
 # models/*.joblib
 
-# Data files (uncomment to exclude from tracking)
-data/*.csv
-data/*.parquet
+# Data files - KEEP these for deployment
+# data/*.csv
+# data/*.parquet
 notebooks/catboost_info/
 
 # OS generated files
