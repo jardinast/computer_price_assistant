@@ -462,6 +462,87 @@ export default function Predictor() {
         </div>
       </div>
 
+      {/* Results Strip - Full Width Horizontal (shown after prediction) */}
+      {prediction && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {/* Price Card */}
+            <div className="glass-card p-4">
+              <p className="text-surface-400 text-sm mb-1">Estimated Price</p>
+              <div className="text-3xl font-bold gradient-text mb-2">
+                €{Math.round(prediction.predicted_price).toLocaleString()}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-surface-400 mb-2">
+                <span>€{Math.round(prediction.price_range.min).toLocaleString()}</span>
+                <span className="text-surface-600">—</span>
+                <span>€{Math.round(prediction.price_range.max).toLocaleString()}</span>
+              </div>
+              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
+                prediction.confidence === 'high'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : prediction.confidence === 'medium'
+                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}>
+                {prediction.confidence === 'high' ? <Check className="w-3 h-3" /> : 
+                 prediction.confidence === 'medium' ? <AlertCircle className="w-3 h-3" /> :
+                 <X className="w-3 h-3" />}
+                {prediction.confidence.charAt(0).toUpperCase() + prediction.confidence.slice(1)} Confidence
+              </div>
+            </div>
+
+            {/* SHAP Chart */}
+            {prediction.shap_features && prediction.shap_features.length > 0 && (
+              <div className="glass-card p-4">
+                <h3 className="text-white text-sm font-medium mb-1">Your Price Breakdown</h3>
+                <p className="text-surface-500 text-xs mb-2">How features affect YOUR price</p>
+                <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} compact />
+              </div>
+            )}
+
+            {/* Model Importance Chart */}
+            {prediction.top_features && (
+              <div className="glass-card p-4">
+                <h3 className="text-white text-sm font-medium mb-1">Model Importance</h3>
+                <p className="text-surface-500 text-xs mb-2">What the model values overall</p>
+                <FeatureImportanceChart features={prediction.top_features} compact />
+              </div>
+            )}
+
+            {/* Config Summary */}
+            <div className="glass-card p-4">
+              <h3 className="text-white text-sm font-medium mb-3">Configuration</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-surface-500">CPU</span>
+                  <span className="text-surface-300">{cpuBrand} {cpuFamily}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500">RAM</span>
+                  <span className="text-surface-300">{ramGb} GB</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500">Storage</span>
+                  <span className="text-surface-300">{ssdGb >= 1000 ? `${ssdGb / 1000} TB` : `${ssdGb} GB`}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500">GPU</span>
+                  <span className="text-surface-300">{gpuIntegrated ? 'Integrated' : gpuSeries}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500">Screen</span>
+                  <span className="text-surface-300">{screenSize}" @ {refreshRate}Hz</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Column */}
         <div className="lg:col-span-2 space-y-4">
@@ -691,121 +772,43 @@ export default function Predictor() {
               <RefreshCw className="w-5 h-5" />
             </button>
           </div>
-
-          {/* Feedback Widget - shown after prediction */}
-          {prediction && (
-            <FeedbackWidget
-              feature="predictor"
-              context={{
-                predicted_price: prediction.predicted_price,
-                brand: brand,
-                cpu_family: cpuFamily,
-                ram_gb: ramGb,
-                ssd_gb: ssdGb,
-              }}
-            />
-          )}
         </div>
 
-        {/* Results Column */}
+        {/* Results Column - Placeholder or Feedback */}
         <div className="space-y-4">
-          {/* Price Result */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-5"
-          >
-            {prediction ? (
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-surface-400 text-sm mb-1">Estimated Price</p>
-                  <div className="text-4xl font-bold gradient-text">
-                    €{Math.round(prediction.predicted_price).toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-surface-400 mt-2">
-                    <span>€{Math.round(prediction.price_range.min).toLocaleString()}</span>
-                    <span className="text-surface-600">—</span>
-                    <span>€{Math.round(prediction.price_range.max).toLocaleString()}</span>
-                  </div>
-                </div>
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
-                  prediction.confidence === 'high'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : prediction.confidence === 'medium'
-                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                }`}>
-                  {prediction.confidence === 'high' ? <Check className="w-4 h-4" /> : 
-                   prediction.confidence === 'medium' ? <AlertCircle className="w-4 h-4" /> :
-                   <X className="w-4 h-4" />}
-                  {prediction.confidence.charAt(0).toUpperCase() + prediction.confidence.slice(1)}
-                </div>
-              </div>
-            ) : (
+          {/* Placeholder when no prediction */}
+          {!prediction && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card p-6"
+            >
+              <h3 className="text-surface-400 text-sm mb-4">Estimated Price</h3>
               <div className="text-center py-8">
                 <Calculator className="w-12 h-12 text-surface-600 mx-auto mb-3" />
                 <p className="text-surface-500">Configure specs and click "Predict Price"</p>
               </div>
-            )}
-          </motion.div>
-
-          {/* Charts Grid - Side by Side */}
-          {prediction && (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {/* YOUR Price Breakdown (SHAP - Individual) */}
-              {prediction.shap_features && prediction.shap_features.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
-                  className="glass-card p-4"
-                >
-                  <h3 className="text-white font-medium mb-1">Your Price Breakdown</h3>
-                  <p className="text-surface-400 text-sm mb-3">
-                    How features affect YOUR price
-                  </p>
-                  <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} compact />
-                </motion.div>
-              )}
-
-              {/* Model Feature Importance (Global) */}
-              {prediction.top_features && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="glass-card p-4"
-                >
-                  <h3 className="text-white font-medium mb-1">Model Importance</h3>
-                  <p className="text-surface-400 text-sm mb-3">
-                    What the model values overall
-                  </p>
-                  <FeatureImportanceChart features={prediction.top_features} compact />
-                </motion.div>
-              )}
-            </div>
+            </motion.div>
           )}
 
-          {/* Config Summary - One line */}
+          {/* Feedback Widget - shown after prediction */}
           {prediction && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="glass-card px-4 py-3"
+              className="glass-card p-4"
             >
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                <span className="text-surface-500">Config:</span>
-                <span className="text-surface-300">{cpuBrand} {cpuFamily}</span>
-                <span className="text-surface-600">•</span>
-                <span className="text-surface-300">{ramGb}GB RAM</span>
-                <span className="text-surface-600">•</span>
-                <span className="text-surface-300">{ssdGb >= 1000 ? `${ssdGb / 1000}TB` : `${ssdGb}GB`} SSD</span>
-                <span className="text-surface-600">•</span>
-                <span className="text-surface-300">{gpuIntegrated ? 'Integrated GPU' : gpuSeries}</span>
-                <span className="text-surface-600">•</span>
-                <span className="text-surface-300">{screenSize}"</span>
-              </div>
+              <p className="text-surface-400 text-sm mb-3">How was this prediction?</p>
+              <FeedbackWidget
+                feature="predictor"
+                context={{
+                  predicted_price: prediction.predicted_price,
+                  brand: brand,
+                  cpu_family: cpuFamily,
+                  ram_gb: ramGb,
+                  ssd_gb: ssdGb,
+                }}
+              />
             </motion.div>
           )}
 
