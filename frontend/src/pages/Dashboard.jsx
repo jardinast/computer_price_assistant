@@ -30,7 +30,15 @@ import axios from 'axios'
 import { API_BASE } from '../config'
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#d946ef', '#06b6d4', '#f59e0b', '#10b981']
-const CLUSTER_COLORS = ['#ef4444', '#f59e0b', '#10b981', '#0ea5e9', '#8b5cf6']
+
+// Cluster colors matching CSS badge colors
+const LABEL_COLORS = {
+  'Ultra Premium': '#f43f5e',  // rose-500
+  'High-End': '#f59e0b',       // amber-500
+  'Performance': '#06b6d4',    // cyan-500
+  'Mid-Range': '#3b82f6',      // blue-500
+  'Budget': '#22c55e',         // green-500
+}
 
 function StatCard({ title, value, subtitle, icon: Icon, color = 'primary' }) {
   const colorClasses = {
@@ -427,21 +435,16 @@ export default function Dashboard() {
                     }}
                   />
                   <Legend
-                    formatter={(value) => {
-                      const clusterInfo = clusterStats.find((c) => c.cluster_id === parseInt(value.split(' ')[1]))
-                      return (
-                        <span className="text-surface-300">
-                          {clusterInfo?.label || value}
-                        </span>
-                      )
-                    }}
+                    formatter={(value) => (
+                      <span className="text-surface-300">{value}</span>
+                    )}
                   />
-                  {[0, 1, 2, 3, 4].map((clusterId) => (
+                  {clusterStats.map((cluster) => (
                     <Scatter
-                      key={clusterId}
-                      name={`Cluster ${clusterId}`}
-                      data={scatterData.filter((d) => d.cluster === clusterId)}
-                      fill={CLUSTER_COLORS[clusterId]}
+                      key={cluster.cluster_id}
+                      name={cluster.label}
+                      data={scatterData.filter((d) => d.cluster === cluster.cluster_id)}
+                      fill={LABEL_COLORS[cluster.label] || '#8b5cf6'}
                       opacity={0.7}
                     />
                   ))}
