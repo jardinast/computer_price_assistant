@@ -564,16 +564,6 @@ def get_clustering_summary(max_points: int = 500) -> Dict[str, Any]:
         avg_ssd = subset['_ssd_gb'].dropna().median() if '_ssd_gb' in subset else 0
         avg_screen = subset['_screen_size'].dropna().mean() if '_screen_size' in subset else 0
 
-        label = 'Entry-Level'
-        if avg_price > 2000:
-            label = 'High-End'
-        elif avg_price > 1200:
-            label = 'Premium'
-        elif avg_price > 800:
-            label = 'Mid-Range'
-        elif avg_price > 500:
-            label = 'Budget'
-
         cluster_stats.append({
             'cluster_id': int(cluster_id),
             'count': int(len(subset)),
@@ -585,10 +575,16 @@ def get_clustering_summary(max_points: int = 500) -> Dict[str, Any]:
                 {str(k): int(v) for k, v in subset['_brand'].value_counts().head(3).to_dict().items()}
                 if '_brand' in subset else {}
             ),
-            'label': label,
+            'label': '',  # Will be assigned after sorting
         })
 
+    # Sort by price (highest first) and assign unique labels
     cluster_stats.sort(key=lambda x: x['avg_price'], reverse=True)
+    
+    # 5 unique labels from highest to lowest price
+    segment_labels = ['Ultra Premium', 'High-End', 'Performance', 'Mid-Range', 'Budget']
+    for i, cluster in enumerate(cluster_stats):
+        cluster['label'] = segment_labels[i] if i < len(segment_labels) else f'Segment {i+1}'
 
     sample_size = min(max_points, len(clustered_df))
     sampled_df = clustered_df.sample(sample_size, random_state=42) if sample_size > 0 else clustered_df
