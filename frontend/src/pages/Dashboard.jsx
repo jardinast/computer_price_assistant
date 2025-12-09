@@ -467,8 +467,8 @@ export default function Dashboard() {
                     <th className="text-left py-3 px-4 text-surface-400 font-medium">Segment</th>
                     <th className="text-right py-3 px-4 text-surface-400 font-medium">Count</th>
                     <th className="text-right py-3 px-4 text-surface-400 font-medium">Avg Price</th>
-                    <th className="text-right py-3 px-4 text-surface-400 font-medium">Avg RAM</th>
-                    <th className="text-right py-3 px-4 text-surface-400 font-medium">Avg SSD</th>
+                    <th className="text-right py-3 px-4 text-surface-400 font-medium">RAM</th>
+                    <th className="text-right py-3 px-4 text-surface-400 font-medium">SSD</th>
                     <th className="text-left py-3 px-4 text-surface-400 font-medium">Top Brands</th>
                   </tr>
                 </thead>

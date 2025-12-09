@@ -162,7 +162,10 @@ def _parse_storage(storage_str) -> float:
     if pd.isna(storage_str):
         return np.nan
     try:
-        storage_str = _clean_string(storage_str).lower().replace(',', '.')
+        storage_str = _clean_string(storage_str).lower()
+        # Handle European number format: 1.000 GB = 1000 GB, 2.000 GB = 2000 GB
+        # Remove periods used as thousand separators (before checking for decimal)
+        storage_str = storage_str.replace('.', '').replace(',', '.')
         if 'tb' in storage_str:
             val = float(storage_str.replace('tb', '').strip())
             return val * 1000
