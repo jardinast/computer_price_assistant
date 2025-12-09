@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import axios from 'axios'
 import { API_BASE } from '../config'
+import FeedbackWidget from '../components/FeedbackWidget'
 
 function OfferCard({ offer, predictedPrice, index }) {
   const priceDiff = offer.price_difference
@@ -446,6 +447,22 @@ export default function SimilarOffers() {
               />
             ))}
           </div>
+
+          {/* Feedback Widget */}
+          {results.similar_offers?.length > 0 && (
+            <div className="mt-6">
+              <FeedbackWidget
+                feature="similar"
+                context={{
+                  num_results: results.similar_offers?.length,
+                  predicted_price: results.predicted_price,
+                  ram_gb: ramGb,
+                  ssd_gb: ssdGb,
+                  screen_size: screenSize,
+                }}
+              />
+            </div>
+          )}
 
           {/* Empty State */}
           {results.similar_offers?.length === 0 && (

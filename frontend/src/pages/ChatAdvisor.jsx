@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Send, Loader2, Key, MessageSquare, Trash2 } from 'lucide-react'
 import axios from 'axios'
 import { API_BASE } from '../config'
+import FeedbackWidget from '../components/FeedbackWidget'
 
 const API = axios.create({
   baseURL: API_BASE,
@@ -245,6 +246,17 @@ export default function ChatAdvisor() {
       <p className="text-center text-xs text-surface-500">
         Powered by GPT-4 · Provide budget/use case details for best results.
       </p>
+
+      {/* Feedback Widget - shown after conversation has started */}
+      {messages.length > 2 && (
+        <FeedbackWidget
+          feature="chat"
+          context={{
+            message_count: messages.length,
+            last_query: messages.filter(m => m.role === 'user').slice(-1)[0]?.content,
+          }}
+        />
+      )}
     </div>
   )
 }

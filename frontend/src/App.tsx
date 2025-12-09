@@ -6,6 +6,7 @@ import PricePredictor from './pages/PricePredictor';
 // @ts-ignore
 import ChatAdvisor from './pages/ChatAdvisor';
 import SimilarLaptops from './pages/SimilarLaptops';
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="predict" element={<PricePredictor />} />
         <Route path="chat" element={<ChatAdvisor />} />
         <Route path="similar" element={<SimilarLaptops />} />
+        <Route path="admin" element={<Admin />} />
       </Route>
     </Routes>
   );

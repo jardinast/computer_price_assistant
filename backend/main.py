@@ -18,6 +18,8 @@ from typing import Dict, Any, List, Optional
 import sys
 import os
 import math
+import json
+from datetime import datetime
 from pathlib import Path
 
 # Add parent directory for imports
@@ -145,6 +147,54 @@ class ChatResponse(BaseModel):
     """Response from chat advisor."""
     response: str
     conversation_history: List[Dict[str, str]]
+
+
+class FeedbackRequest(BaseModel):
+    """Request model for submitting feedback."""
+    feature: str = Field(..., description="Feature name: predictor, similar, chat, dashboard")
+    rating: str = Field(..., description="Rating: positive or negative")
+    sliders: Optional[Dict[str, int]] = Field(default=None, description="Optional slider ratings (1-10)")
+    comment: Optional[str] = Field(default=None, description="Optional text comment")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Context data from the feature")
+
+
+class FeedbackResponse(BaseModel):
+    """Response after submitting feedback."""
+    success: bool
+    message: str
+
+
+# Feedback storage path
+FEEDBACK_FILE = Path(__file__).parent.parent / "data" / "feedback.jsonl"
+
+
+def _ensure_feedback_file():
+    """Ensure the feedback file and directory exist."""
+    FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not FEEDBACK_FILE.exists():
+        FEEDBACK_FILE.touch()
+
+
+def _append_feedback(feedback_data: Dict[str, Any]):
+    """Append feedback to the JSONL file."""
+    _ensure_feedback_file()
+    with open(FEEDBACK_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(feedback_data, ensure_ascii=False) + "\n")
+
+
+def _read_all_feedback() -> List[Dict[str, Any]]:
+    """Read all feedback from the file."""
+    _ensure_feedback_file()
+    feedback_list = []
+    with open(FEEDBACK_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    feedback_list.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+    return feedback_list
 
 
 # =============================================================================
@@ -561,6 +611,129 @@ async def get_chat_greeting():
 
 Just tell me about your needs, and I'll help you find the right specs and price range!"""
     }
+
+
+# -----------------------------------------------------------------------------
+# FEEDBACK ENDPOINTS
+# -----------------------------------------------------------------------------
+
+@app.post("/api/feedback", response_model=FeedbackResponse)
+async def submit_feedback(request: FeedbackRequest):
+    """
+    Submit user feedback for any feature.
+    
+    Stores feedback to a JSONL file for monitoring and analysis.
+    """
+    try:
+        feedback_data = {
+            "timestamp": datetime.now().isoformat(),
+            "feature": request.feature,
+            "rating": request.rating,
+            "sliders": request.sliders,
+            "comment": request.comment,
+            "context": request.context,
+        }
+        
+        _append_feedback(feedback_data)
+        
+        return FeedbackResponse(
+            success=True,
+            message="Thank you for your feedback!"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save feedback: {str(e)}")
+
+
+@app.get("/api/admin/feedback")
+async def get_feedback(
+    admin_key: str = Query(None, description="Admin key for authentication"),
+    feature: Optional[str] = Query(None, description="Filter by feature"),
+    limit: int = Query(100, description="Max number of records to return")
+):
+    """
+    Get feedback data (admin endpoint).
+    
+    Protected by admin_key (set ADMIN_KEY env var in Railway).
+    """
+    # Simple auth check
+    expected_key = os.environ.get("ADMIN_KEY", "admin123")
+    if admin_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid admin key")
+    
+    try:
+        all_feedback = _read_all_feedback()
+        
+        # Filter by feature if specified
+        if feature:
+            all_feedback = [f for f in all_feedback if f.get("feature") == feature]
+        
+        # Return most recent first, limited
+        all_feedback = sorted(all_feedback, key=lambda x: x.get("timestamp", ""), reverse=True)
+        all_feedback = all_feedback[:limit]
+        
+        return {
+            "total": len(all_feedback),
+            "feedback": all_feedback
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read feedback: {str(e)}")
+
+
+@app.get("/api/admin/feedback/stats")
+async def get_feedback_stats(
+    admin_key: str = Query(None, description="Admin key for authentication")
+):
+    """
+    Get feedback statistics (admin endpoint).
+    """
+    expected_key = os.environ.get("ADMIN_KEY", "admin123")
+    if admin_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid admin key")
+    
+    try:
+        all_feedback = _read_all_feedback()
+        
+        # Calculate stats
+        total = len(all_feedback)
+        positive = len([f for f in all_feedback if f.get("rating") == "positive"])
+        negative = len([f for f in all_feedback if f.get("rating") == "negative"])
+        
+        # Stats by feature
+        by_feature = {}
+        for f in all_feedback:
+            feat = f.get("feature", "unknown")
+            if feat not in by_feature:
+                by_feature[feat] = {"total": 0, "positive": 0, "negative": 0}
+            by_feature[feat]["total"] += 1
+            if f.get("rating") == "positive":
+                by_feature[feat]["positive"] += 1
+            elif f.get("rating") == "negative":
+                by_feature[feat]["negative"] += 1
+        
+        # Average slider ratings
+        slider_totals = {}
+        slider_counts = {}
+        for f in all_feedback:
+            sliders = f.get("sliders") or {}
+            for key, val in sliders.items():
+                if key not in slider_totals:
+                    slider_totals[key] = 0
+                    slider_counts[key] = 0
+                slider_totals[key] += val
+                slider_counts[key] += 1
+        
+        avg_sliders = {k: round(slider_totals[k] / slider_counts[k], 1) for k in slider_totals}
+        
+        return {
+            "total": total,
+            "positive": positive,
+            "negative": negative,
+            "positive_rate": round(positive / total * 100, 1) if total > 0 else 0,
+            "by_feature": by_feature,
+            "avg_slider_ratings": avg_sliders
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to calculate stats: {str(e)}")
 
 
 # -----------------------------------------------------------------------------

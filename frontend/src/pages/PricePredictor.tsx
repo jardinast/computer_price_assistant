@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Loader2, Calculator, Info } from 'lucide-react';
 import { predictPrice } from '../services/api';
 import type { PredictionRequest, PredictionResponse } from '../types';
+import FeedbackWidget from '../components/FeedbackWidget';
 
 const USE_CASES = [
   { value: 'general', label: 'General Use' },
@@ -363,6 +364,18 @@ export default function PricePredictor() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+
+              {/* Feedback Widget */}
+              <FeedbackWidget
+                feature="predictor"
+                context={{
+                  predicted_price: result.predicted_price,
+                  brand: formData.brand,
+                  cpu_family: formData.cpu_family,
+                  ram_gb: formData.ram_gb,
+                  ssd_gb: formData.ssd_gb,
+                }}
+              />
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
