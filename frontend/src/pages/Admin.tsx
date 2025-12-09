@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Lock, RefreshCw, ThumbsUp, ThumbsDown, BarChart3, Download } from 'lucide-react'
 import axios from 'axios'
 import { API_BASE } from '../config'
 
@@ -82,11 +81,12 @@ export default function Admin() {
     }
   }, [filter])
 
+  // Login screen
   if (!authenticated) {
     return (
-      <div className="max-w-md mx-auto mt-20">
-        <div className="glass-card p-8 text-center">
-          <Lock className="w-12 h-12 text-primary-400 mx-auto mb-4" />
+      <div className="max-w-md mx-auto mt-12">
+        <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-8 text-center">
+          <div className="text-4xl mb-4">🔐</div>
           <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
           <p className="text-surface-400 mb-6">Enter admin key to view feedback data</p>
 
@@ -96,7 +96,7 @@ export default function Admin() {
             onChange={(e) => setAdminKey(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Admin key..."
-            className="input-field w-full mb-4"
+            className="w-full px-4 py-3 bg-surface-800/50 border border-surface-700 rounded-xl text-surface-100 placeholder-surface-500 focus:outline-none focus:border-primary-500/50 mb-4"
           />
 
           {error && (
@@ -106,35 +106,40 @@ export default function Admin() {
           <button
             onClick={handleLogin}
             disabled={loading || !adminKey.trim()}
-            className="btn-primary w-full"
+            className="w-full px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl hover:from-primary-400 hover:to-accent-400 transition-all duration-200 disabled:opacity-50"
           >
             {loading ? 'Authenticating...' : 'Access Dashboard'}
           </button>
 
           <p className="text-surface-500 text-xs mt-4">
-            Default key: admin123 (set ADMIN_KEY env var in Railway)
+            Default key: admin123 (set ADMIN_KEY env var in production)
           </p>
         </div>
       </div>
     )
   }
 
+  // Authenticated dashboard
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Feedback Dashboard</h1>
+          <h1 className="text-3xl font-bold text-white">📊 Feedback Dashboard</h1>
           <p className="text-surface-400">Monitor user feedback across all features</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={fetchData} className="btn-secondary flex items-center gap-2">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+          <button 
+            onClick={() => fetchData()} 
+            className="px-4 py-2 bg-surface-800 text-surface-100 rounded-lg border border-surface-700 hover:bg-surface-700"
+          >
+            🔄 Refresh
           </button>
-          <button onClick={downloadFeedback} className="btn-secondary flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export JSON
+          <button 
+            onClick={downloadFeedback} 
+            className="px-4 py-2 bg-surface-800 text-surface-100 rounded-lg border border-surface-700 hover:bg-surface-700"
+          >
+            📥 Export JSON
           </button>
         </div>
       </div>
@@ -142,48 +147,31 @@ export default function Admin() {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-primary-400" />
-              <div>
-                <p className="text-surface-400 text-sm">Total Feedback</p>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
-              </div>
-            </div>
+          <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-6">
+            <p className="text-surface-400 text-sm">Total Feedback</p>
+            <p className="text-3xl font-bold text-white">{stats.total}</p>
           </div>
 
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3">
-              <ThumbsUp className="w-8 h-8 text-emerald-400" />
-              <div>
-                <p className="text-surface-400 text-sm">Positive</p>
-                <p className="text-2xl font-bold text-emerald-400">{stats.positive}</p>
-              </div>
-            </div>
+          <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-6">
+            <p className="text-surface-400 text-sm">👍 Positive</p>
+            <p className="text-3xl font-bold text-emerald-400">{stats.positive}</p>
           </div>
 
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3">
-              <ThumbsDown className="w-8 h-8 text-red-400" />
-              <div>
-                <p className="text-surface-400 text-sm">Negative</p>
-                <p className="text-2xl font-bold text-red-400">{stats.negative}</p>
-              </div>
-            </div>
+          <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-6">
+            <p className="text-surface-400 text-sm">👎 Negative</p>
+            <p className="text-3xl font-bold text-red-400">{stats.negative}</p>
           </div>
 
-          <div className="glass-card p-6">
-            <div>
-              <p className="text-surface-400 text-sm">Positive Rate</p>
-              <p className="text-2xl font-bold text-white">{stats.positive_rate}%</p>
-            </div>
+          <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-6">
+            <p className="text-surface-400 text-sm">Positive Rate</p>
+            <p className="text-3xl font-bold text-white">{stats.positive_rate}%</p>
           </div>
         </div>
       )}
 
       {/* Stats by Feature */}
       {stats && Object.keys(stats.by_feature).length > 0 && (
-        <div className="glass-card p-6 mb-8">
+        <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-6 mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">By Feature</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(stats.by_feature).map(([feature, data]) => (
@@ -192,7 +180,6 @@ export default function Admin() {
                 <div className="flex items-center gap-4 text-sm">
                   <span className="text-emerald-400">👍 {data.positive}</span>
                   <span className="text-red-400">👎 {data.negative}</span>
-                  <span className="text-surface-400">Total: {data.total}</span>
                 </div>
               </div>
             ))}
@@ -200,29 +187,14 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Average Slider Ratings */}
-      {stats && Object.keys(stats.avg_slider_ratings).length > 0 && (
-        <div className="glass-card p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">Average Ratings</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(stats.avg_slider_ratings).map(([key, value]) => (
-              <div key={key} className="bg-surface-800/50 rounded-lg p-4">
-                <p className="text-surface-400 text-sm capitalize mb-1">{key.replace('_', ' ')}</p>
-                <p className="text-xl font-bold text-white">{value}/10</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Filter and Feedback List */}
-      <div className="glass-card p-6">
+      <div className="bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Recent Feedback</h2>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="select-field w-40"
+            className="px-4 py-2 bg-surface-800/50 border border-surface-700 rounded-lg text-surface-100"
           >
             <option value="">All Features</option>
             <option value="predictor">Predictor</option>
@@ -240,7 +212,7 @@ export default function Admin() {
               <div key={i} className="bg-surface-800/50 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <span className={`text-xl ${entry.rating === 'positive' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <span className="text-xl">
                       {entry.rating === 'positive' ? '👍' : '👎'}
                     </span>
                     <span className="px-2 py-1 bg-surface-700 rounded text-xs text-surface-300 capitalize">
@@ -282,4 +254,3 @@ export default function Admin() {
     </div>
   )
 }
-
