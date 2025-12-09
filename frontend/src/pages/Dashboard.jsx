@@ -145,6 +145,7 @@ export default function Dashboard() {
 
   // Prepare chart data
   const brandData = Object.entries(stats?.brand_distribution || {})
+    .filter(([name]) => name.toLowerCase() !== 'unknown')
     .slice(0, 10)
     .map(([name, value]) => ({ name, value }))
 
@@ -528,6 +529,5 @@ export default function Dashboard() {
     </div>
   )
 }
-
 
 
