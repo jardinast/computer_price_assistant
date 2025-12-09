@@ -268,6 +268,7 @@ export default function Predictor() {
   const [predicting, setPredicting] = useState(false)
   const [prediction, setPrediction] = useState(null)
   const [error, setError] = useState(null)
+  const [showConfig, setShowConfig] = useState(true) // Toggle config panel visibility
 
   // Form state
   const [useCase, setUseCase] = useState('general')
@@ -334,6 +335,7 @@ export default function Predictor() {
     try {
       const res = await axios.post(`${API_BASE}/predictive/predict`, inputs)
       setPrediction(res.data)
+      setShowConfig(false) // Collapse config panel after successful prediction
     } catch (err) {
       setError(err.response?.data?.error || err.message)
     } finally {
@@ -462,21 +464,22 @@ export default function Predictor() {
         </div>
       </div>
 
-      {/* Results Strip - Full Width Horizontal (shown after prediction) */}
+      {/* Results Section (shown after prediction) */}
       {prediction && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Top row: Price + Config Summary + Toggle Button */}
+          <div className="flex flex-wrap items-start gap-4 mb-4">
             {/* Price Card */}
-            <div className="glass-card p-4">
+            <div className="glass-card p-5 flex-1 min-w-[200px]">
               <p className="text-surface-400 text-sm mb-1">Estimated Price</p>
-              <div className="text-3xl font-bold gradient-text mb-2">
+              <div className="text-4xl font-bold gradient-text mb-2">
                 €{Math.round(prediction.predicted_price).toLocaleString()}
               </div>
-              <div className="flex items-center gap-2 text-sm text-surface-400 mb-2">
+              <div className="flex items-center gap-2 text-sm text-surface-400 mb-3">
                 <span>€{Math.round(prediction.price_range.min).toLocaleString()}</span>
                 <span className="text-surface-600">—</span>
                 <span>€{Math.round(prediction.price_range.max).toLocaleString()}</span>
@@ -495,28 +498,10 @@ export default function Predictor() {
               </div>
             </div>
 
-            {/* SHAP Chart */}
-            {prediction.shap_features && prediction.shap_features.length > 0 && (
-              <div className="glass-card p-4">
-                <h3 className="text-white text-sm font-medium mb-1">Your Price Breakdown</h3>
-                <p className="text-surface-500 text-xs mb-2">How features affect YOUR price</p>
-                <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} compact />
-              </div>
-            )}
-
-            {/* Model Importance Chart */}
-            {prediction.top_features && (
-              <div className="glass-card p-4">
-                <h3 className="text-white text-sm font-medium mb-1">Model Importance</h3>
-                <p className="text-surface-500 text-xs mb-2">What the model values overall</p>
-                <FeatureImportanceChart features={prediction.top_features} compact />
-              </div>
-            )}
-
-            {/* Config Summary */}
-            <div className="glass-card p-4">
+            {/* Config Summary Card */}
+            <div className="glass-card p-5 flex-1 min-w-[200px]">
               <h3 className="text-white text-sm font-medium mb-3">Configuration</h3>
-              <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-surface-500">CPU</span>
                   <span className="text-surface-300">{cpuBrand} {cpuFamily}</span>
@@ -535,14 +520,72 @@ export default function Predictor() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-surface-500">Screen</span>
-                  <span className="text-surface-300">{screenSize}" @ {refreshRate}Hz</span>
+                  <span className="text-surface-300">{screenSize}"</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500">Use Case</span>
+                  <span className="text-surface-300">{USE_CASE_INFO[useCase].label}</span>
                 </div>
               </div>
             </div>
+
+            {/* Toggle Config Button */}
+            <button
+              onClick={() => setShowConfig(!showConfig)}
+              className="btn-secondary px-4 py-3 flex items-center gap-2"
+            >
+              <Sliders className="w-4 h-4" />
+              {showConfig ? 'Hide Config' : 'Modify Config'}
+            </button>
+          </div>
+
+          {/* Charts Row - Full Width, Bigger */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* SHAP Chart */}
+            {prediction.shap_features && prediction.shap_features.length > 0 && (
+              <div className="glass-card p-5">
+                <h3 className="text-white font-medium mb-1">Your Price Breakdown</h3>
+                <p className="text-surface-400 text-sm mb-3">How each feature affects YOUR predicted price</p>
+                <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} />
+              </div>
+            )}
+
+            {/* Model Importance Chart */}
+            {prediction.top_features && (
+              <div className="glass-card p-5">
+                <h3 className="text-white font-medium mb-1">Model Feature Importance</h3>
+                <p className="text-surface-400 text-sm mb-3">What the model generally considers important</p>
+                <FeatureImportanceChart features={prediction.top_features} />
+              </div>
+            )}
+          </div>
+
+          {/* Feedback Widget */}
+          <div className="mt-4">
+            <FeedbackWidget
+              feature="predictor"
+              context={{
+                predicted_price: prediction.predicted_price,
+                brand: brand,
+                cpu_family: cpuFamily,
+                ram_gb: ramGb,
+                ssd_gb: ssdGb,
+              }}
+            />
           </div>
         </motion.div>
       )}
 
+      {/* Config Form - Collapsible */}
+      <AnimatePresence>
+      {showConfig && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Column */}
         <div className="lg:col-span-2 space-y-4">
@@ -791,27 +834,6 @@ export default function Predictor() {
             </motion.div>
           )}
 
-          {/* Feedback Widget - shown after prediction */}
-          {prediction && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-4"
-            >
-              <p className="text-surface-400 text-sm mb-3">How was this prediction?</p>
-              <FeedbackWidget
-                feature="predictor"
-                context={{
-                  predicted_price: prediction.predicted_price,
-                  brand: brand,
-                  cpu_family: cpuFamily,
-                  ram_gb: ramGb,
-                  ssd_gb: ssdGb,
-                }}
-              />
-            </motion.div>
-          )}
-
           {/* Error Display */}
           {error && (
             <motion.div
@@ -830,6 +852,9 @@ export default function Predictor() {
           )}
         </div>
       </div>
+        </motion.div>
+      )}
+      </AnimatePresence>
     </div>
   )
 }
