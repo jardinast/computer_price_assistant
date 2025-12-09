@@ -153,8 +153,15 @@ function CheckboxInput({ label, checked, onChange, description }) {
 }
 
 function FeatureImportanceChart({ features }) {
+  // Truncate long feature names to prevent overlap
+  const truncateName = (name, maxLength = 18) => {
+    if (name.length <= maxLength) return name
+    return name.substring(0, maxLength - 1) + '…'
+  }
+  
   const data = features.map((f) => ({
-    name: f.readable_name,
+    name: truncateName(f.readable_name),
+    fullName: f.readable_name,
     importance: f.importance_pct,
   }))
 
@@ -170,7 +177,7 @@ function FeatureImportanceChart({ features }) {
               if (active && payload && payload.length) {
                 return (
                   <div className="glass-card p-3 border border-surface-600">
-                    <p className="text-white font-medium">{payload[0].payload.name}</p>
+                    <p className="text-white font-medium">{payload[0].payload.fullName}</p>
                     <p className="text-primary-400 font-mono">{payload[0].value.toFixed(1)}% importance</p>
                   </div>
                 )
