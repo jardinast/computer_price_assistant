@@ -203,3 +203,5 @@ Need help? Open an issue or contact the team with logs (`backend` prints structu
 ---
 
 Happy predicting! 🎯
+
+Note: AI coding assistants(Claude, Cursor, Codex) used for implementation support and Debugging. All design decisions and validation performed by the team.
