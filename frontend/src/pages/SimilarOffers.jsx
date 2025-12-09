@@ -19,6 +19,7 @@ import {
 import axios from 'axios'
 import { API_BASE } from '../config'
 import FeedbackWidget from '../components/FeedbackWidget'
+import { loadSimilarConfig } from '../utils/similarConfigStorage'
 
 function OfferCard({ offer, predictedPrice, index }) {
   const priceDiff = offer.price_difference
@@ -153,6 +154,19 @@ export default function SimilarOffers() {
 
   useEffect(() => {
     fetchOptions()
+  }, [])
+
+  useEffect(() => {
+    const savedConfig = loadSimilarConfig()
+    if (!savedConfig) return
+
+    if (savedConfig.useCase) setUseCase(savedConfig.useCase)
+    if (typeof savedConfig.brand === 'string') setBrand(savedConfig.brand)
+    if (typeof savedConfig.ramGb === 'number') setRamGb(savedConfig.ramGb)
+    if (typeof savedConfig.ssdGb === 'number') setSsdGb(savedConfig.ssdGb)
+    if (typeof savedConfig.screenSize === 'number') setScreenSize(savedConfig.screenSize)
+    if (savedConfig.cpuFamily) setCpuFamily(savedConfig.cpuFamily)
+    if (typeof savedConfig.gpuIntegrated === 'boolean') setGpuIntegrated(savedConfig.gpuIntegrated)
   }, [])
 
   const fetchOptions = async () => {
@@ -490,6 +504,5 @@ export default function SimilarOffers() {
     </div>
   )
 }
-
 
 

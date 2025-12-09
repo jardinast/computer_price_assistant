@@ -31,6 +31,7 @@ import {
 import axios from 'axios'
 import { API_BASE } from '../config'
 import FeedbackWidget from '../components/FeedbackWidget'
+import { saveSimilarConfig } from '../utils/similarConfigStorage'
 
 const USE_CASE_INFO = {
   general: { label: 'General Use', icon: Laptop, color: 'primary', description: 'Everyday tasks, browsing, office work' },
@@ -335,6 +336,15 @@ export default function Predictor() {
     try {
       const res = await axios.post(`${API_BASE}/predictive/predict`, inputs)
       setPrediction(res.data)
+      saveSimilarConfig({
+        useCase,
+        brand,
+        ramGb,
+        ssdGb,
+        screenSize,
+        cpuFamily: cpuFamily.toLowerCase(),
+        gpuIntegrated,
+      })
       setShowConfig(false) // Collapse config panel after successful prediction
     } catch (err) {
       setError(err.response?.data?.error || err.message)
@@ -858,4 +868,3 @@ export default function Predictor() {
     </div>
   )
 }
-
