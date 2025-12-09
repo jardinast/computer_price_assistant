@@ -298,7 +298,10 @@ async def predictive_predict(payload: Dict[str, Any]):
     try:
         result = explicar_prediccion(inputs, use_case=use_case)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        print(f"Prediction error: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
     top_features = []
     for feature in result.get('top_features', []):
@@ -310,6 +313,18 @@ async def predictive_predict(payload: Dict[str, Any]):
             'importance_pct': importance_val if importance_val is not None else 0,
         })
 
+    # Process SHAP features for local explanation
+    shap_features = []
+    for feature in result.get('shap_features', []):
+        shap_val = feature.get('shap_value', 0)
+        shap_float = _safe_float(shap_val)
+        shap_features.append({
+            'feature': feature.get('feature'),
+            'readable_name': feature.get('readable_name', feature.get('feature')),
+            'shap_value': shap_float if shap_float is not None else 0,
+            'direction': feature.get('direction', 'positive'),
+        })
+
     return {
         'predicted_price': _safe_float(result.get('prediccion')) or 0,
         'price_range': {
@@ -318,6 +333,7 @@ async def predictive_predict(payload: Dict[str, Any]):
         },
         'confidence': result.get('confidence', 'unknown'),
         'top_features': top_features,
+        'shap_features': shap_features,
         'explanation': result.get('explanation_text', ''),
     }
 

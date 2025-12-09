@@ -261,14 +261,27 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
     modelo_info = _cargar_modelo_si_necesario(model_path)
     model = modelo_info['model']
     feature_cols = modelo_info['feature_cols']
+    categorical_cols = modelo_info['categorical_cols']
     
-    # Get use case profile
-    profile = USE_CASE_PROFILES.get(use_case, USE_CASE_PROFILES['general'])
+    # Prepare features using the same logic as predecir_precio
+    df = _prepare_features(campos_dict, use_case)
     
-    # Prepare input data (same logic as predecir_precio)
-    merged = {**profile, **campos_dict}
-    input_data = {col: merged.get(col, None) for col in feature_cols}
-    X = pd.DataFrame([input_data])
+    # Select only model features that exist in our DataFrame
+    available_cols = [c for c in feature_cols if c in df.columns]
+    missing_cols = [c for c in feature_cols if c not in df.columns]
+    
+    # Add missing columns with NaN
+    for col in missing_cols:
+        df[col] = np.nan
+    
+    # Ensure categorical columns are strings
+    for col in categorical_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(str)
+            df[col] = df[col].replace('nan', 'missing')
+    
+    # Reorder to match model expectations
+    X = df[feature_cols]
     
     # Make prediction
     precio = float(max(0, model.predict(X)[0]))
@@ -337,11 +350,11 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
     try:
         from catboost import Pool
         
-        # Get categorical feature names from model
-        cat_features = modelo_info.get('cat_features', [])
+        # Get categorical feature indices for Pool
+        cat_feature_indices = [i for i, col in enumerate(feature_cols) if col in categorical_cols]
         
         # Create a Pool object for SHAP calculation
-        pool = Pool(X, cat_features=cat_features if cat_features else None)
+        pool = Pool(X, cat_features=cat_feature_indices if cat_feature_indices else None)
         
         # CatBoost's get_feature_importance with ShapValues
         shap_values = model.get_feature_importance(
