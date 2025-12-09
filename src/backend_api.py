@@ -335,9 +335,17 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
     # Get LOCAL SHAP values for this specific prediction
     shap_features = []
     try:
+        from catboost import Pool
+        
+        # Get categorical feature names from model
+        cat_features = modelo_info.get('cat_features', [])
+        
+        # Create a Pool object for SHAP calculation
+        pool = Pool(X, cat_features=cat_features if cat_features else None)
+        
         # CatBoost's get_feature_importance with ShapValues
         shap_values = model.get_feature_importance(
-            data=X,
+            data=pool,
             type='ShapValues'
         )
         # ShapValues returns array of shape (n_samples, n_features + 1)
@@ -360,7 +368,12 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
                 })
     except Exception as e:
         # Fallback if SHAP not available - use global importance scaled by price
+        import traceback
         print(f"SHAP calculation failed: {e}")
+        print(traceback.format_exc())
+    
+    # If SHAP failed or returned empty, use fallback
+    if not shap_features:
         for feat in top_features[:10]:
             contribution = precio * (feat['importance_pct'] / 100)
             shap_features.append({
