@@ -252,7 +252,7 @@ export default function Dashboard() {
                   <BarChart data={brandData} layout="vertical" margin={{ left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis type="number" stroke="#64748b" />
-                    <YAxis dataKey="name" type="category" stroke="#64748b" width={80} />
+                    <YAxis dataKey="name" type="category" stroke="#64748b" width={80} interval={0} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="value" fill="#0ea5e9" radius={[0, 4, 4, 0]} />
                   </BarChart>
@@ -310,7 +310,7 @@ export default function Dashboard() {
                   <BarChart data={priceByBrandData} layout="vertical" margin={{ left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis type="number" stroke="#64748b" tickFormatter={(v) => `€${v}`} />
-                    <YAxis dataKey="name" type="category" stroke="#64748b" width={80} />
+                    <YAxis dataKey="name" type="category" stroke="#64748b" width={80} interval={0} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="avg" fill="#8b5cf6" radius={[0, 4, 4, 0]} name="Avg Price" />
                   </BarChart>

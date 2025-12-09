@@ -164,7 +164,7 @@ function FeatureImportanceChart({ features }) {
         <BarChart data={data} layout="vertical" margin={{ left: 20, right: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
           <XAxis type="number" stroke="#64748b" tickFormatter={(v) => `${v.toFixed(0)}%`} />
-          <YAxis dataKey="name" type="category" stroke="#64748b" width={120} tick={{ fontSize: 12 }} />
+          <YAxis dataKey="name" type="category" stroke="#64748b" width={120} tick={{ fontSize: 12 }} interval={0} />
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
