@@ -1,0 +1,12 @@
+{
+  "best_params": {
+    "iterations": 787,
+    "depth": 7,
+    "learning_rate": 0.0402247826702555,
+    "l2_leaf_reg": 1.0339182502403144,
+    "bagging_temperature": 0.6391339282168302,
+    "min_data_in_leaf": 21
+  },
+  "best_value": 225.489102524459,
+  "best_strategy": "IQR Method"
+}

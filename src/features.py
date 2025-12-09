@@ -960,20 +960,74 @@ def extraer_precio_medio(precio_rango: str) -> Optional[float]:
 
 
 def extraer_brand(titulo: str) -> Optional[str]:
-    """Extract brand from product title."""
+    """Extract brand from product title.
+
+    Handles both simple brands (Apple, ASUS) and compound brands (Deep Gaming, Memory PC).
+    """
     if pd.isna(titulo):
         return np.nan
 
-    common_brands = {
+    titulo_str = str(titulo).strip()
+    if not titulo_str:
+        return np.nan
+
+    titulo_lower = titulo_str.lower()
+
+    # Compound brand names (must be checked first, in order of specificity)
+    # Format: (pattern to match, normalized brand name)
+    compound_brands = [
+        # Two-word brands
+        ('deep gaming', 'Deep Gaming'),
+        ('memory pc', 'Memory PC'),
+        ('zone evil', 'Zone Evil'),
+        ('joule force', 'Joule Force'),
+        ('joule nuke', 'Joule Performance'),
+        ('phoenix technologies', 'Phoenix Technologies'),
+        ('hyper byte', 'Hyper Byte'),
+        ('concept futurenuc', 'Concept'),
+        ('greed multimedia', 'GREED'),
+        ('greed mk', 'GREED'),
+        ('greed nano', 'GREED'),
+        ('adonia gaming', 'Adonia'),
+        ('adonia adonia', 'Adonia'),
+        # PcCom variants
+        ('pccom', 'PcCom'),
+        # Other compound brands
+        ('republic of gamers', 'ASUS'),
+        ('rog ', 'ASUS'),
+    ]
+
+    for pattern, brand in compound_brands:
+        if titulo_lower.startswith(pattern):
+            return brand
+
+    # Simple single-word brands (case-insensitive matching)
+    simple_brands = {
         'apple': 'Apple', 'asus': 'ASUS', 'lenovo': 'Lenovo', 'hp': 'HP',
         'dell': 'Dell', 'acer': 'Acer', 'msi': 'MSI', 'samsung': 'Samsung',
         'microsoft': 'Microsoft', 'razer': 'Razer', 'alienware': 'Alienware',
         'lg': 'LG', 'huawei': 'Huawei', 'xiaomi': 'Xiaomi', 'gigabyte': 'Gigabyte',
         'toshiba': 'Toshiba', 'fujitsu': 'Fujitsu', 'medion': 'Medion',
+        'vibox': 'Vibox', 'captiva': 'Captiva', 'beelink': 'Beelink',
+        'minisforum': 'Minisforum', 'geekom': 'Geekom', 'acemagic': 'Acemagic',
+        'acemagician': 'Acemagician', 'chuwi': 'Chuwi', 'blackview': 'Blackview',
+        'bmax': 'BMAX', 'ninkear': 'Ninkear', 'nipogi': 'NiPoGi', 'ouvis': 'Ouvis',
+        'gmktec': 'GMKtec', 'mele': 'Mele', 'awow': 'AWOW', 'minix': 'Minix',
+        'zotac': 'Zotac', 'shuttle': 'Shuttle', 'intel': 'Intel',
+        'corsair': 'Corsair', 'thermaltake': 'Thermaltake', 'nzxt': 'NZXT',
+        'dynabook': 'Dynabook', 'schenker': 'Schenker', 'hyrican': 'Hyrican',
+        'kiebel': 'Kiebel', 'ankermann': 'Ankermann', 'sedatech': 'Sedatech',
+        'screenon': 'ScreenOn', 'nitropc': 'NitroPC', 'realme': 'Realme',
+        'thomson': 'Thomson', 'gpd': 'GPD', 'asrock': 'ASRock',
+        'viewsonic': 'ViewSonic', 'iiyama': 'Iiyama',
     }
 
-    first_word = str(titulo).split()[0].lower() if titulo else ''
-    return common_brands.get(first_word, first_word.capitalize() if first_word else np.nan)
+    first_word = titulo_str.split()[0].lower()
+    if first_word in simple_brands:
+        return simple_brands[first_word]
+
+    # Capitalize first word as fallback for unknown brands
+    return titulo_str.split()[0].capitalize() if titulo_str.split() else np.nan
 
 
 def extraer_serie(serie_original: str, titulo: str, brand: str) -> Optional[str]:
