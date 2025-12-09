@@ -155,13 +155,13 @@ function CheckboxInput({ label, checked, onChange, description }) {
 
 // Individual Price Breakdown (SHAP values) - shows € contribution for THIS prediction
 function ShapBreakdownChart({ features, basePrice, compact = false }) {
-  const truncateName = (name, maxLength = 14) => {
+  const truncateName = (name, maxLength = 16) => {
     if (name.length <= maxLength) return name
     return name.substring(0, maxLength - 1) + '…'
   }
 
-  // Limit to top 6 features for compact view
-  const limitedFeatures = compact ? features.slice(0, 6) : features
+  // Limit to top 7 features for compact view
+  const limitedFeatures = compact ? features.slice(0, 7) : features
   const data = limitedFeatures.map((f) => ({
     name: truncateName(f.readable_name),
     fullName: f.readable_name,
@@ -170,25 +170,25 @@ function ShapBreakdownChart({ features, basePrice, compact = false }) {
   }))
 
   return (
-    <div className={compact ? "h-44" : "h-64"}>
+    <div className={compact ? "h-56" : "h-64"}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 15, right: 35 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
           <XAxis 
             type="number" 
             stroke="#64748b" 
             tickFormatter={(v) => `${v >= 0 ? '+' : ''}€${Math.round(v)}`}
-            tick={{ fontSize: 10 }}
+            tick={{ fontSize: 11 }}
           />
-          <YAxis dataKey="name" type="category" stroke="#64748b" width={95} tick={{ fontSize: 10 }} interval={0} />
+          <YAxis dataKey="name" type="category" stroke="#64748b" width={100} tick={{ fontSize: 11 }} interval={0} />
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const val = payload[0].value
                 return (
-                  <div className="glass-card p-2 border border-surface-600 text-xs">
-                    <p className="text-white font-medium">{payload[0].payload.fullName}</p>
-                    <p className={`font-mono ${val >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className="glass-card p-2 border border-surface-600">
+                    <p className="text-white font-medium text-sm">{payload[0].payload.fullName}</p>
+                    <p className={`font-mono text-sm ${val >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {val >= 0 ? '+' : ''}€{Math.round(val)} to price
                     </p>
                   </div>
@@ -215,13 +215,13 @@ function ShapBreakdownChart({ features, basePrice, compact = false }) {
 // Global Feature Importance - shows what the model generally values
 function FeatureImportanceChart({ features, compact = false }) {
   // Truncate long feature names to prevent overlap
-  const truncateName = (name, maxLength = 14) => {
+  const truncateName = (name, maxLength = 16) => {
     if (name.length <= maxLength) return name
     return name.substring(0, maxLength - 1) + '…'
   }
   
-  // Limit to top 6 features for compact view
-  const limitedFeatures = compact ? features.slice(0, 6) : features
+  // Limit to top 7 features for compact view
+  const limitedFeatures = compact ? features.slice(0, 7) : features
   const data = limitedFeatures.map((f) => ({
     name: truncateName(f.readable_name),
     fullName: f.readable_name,
@@ -229,19 +229,19 @@ function FeatureImportanceChart({ features, compact = false }) {
   }))
 
   return (
-    <div className={compact ? "h-44" : "h-64"}>
+    <div className={compact ? "h-56" : "h-64"}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 15 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 15, right: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-          <XAxis type="number" stroke="#64748b" tickFormatter={(v) => `${v.toFixed(0)}%`} tick={{ fontSize: 10 }} />
-          <YAxis dataKey="name" type="category" stroke="#64748b" width={95} tick={{ fontSize: 10 }} interval={0} />
+          <XAxis type="number" stroke="#64748b" tickFormatter={(v) => `${v.toFixed(0)}%`} tick={{ fontSize: 11 }} />
+          <YAxis dataKey="name" type="category" stroke="#64748b" width={100} tick={{ fontSize: 11 }} interval={0} />
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="glass-card p-2 border border-surface-600 text-xs">
-                    <p className="text-white font-medium">{payload[0].payload.fullName}</p>
-                    <p className="text-primary-400 font-mono">{payload[0].value.toFixed(1)}% importance</p>
+                  <div className="glass-card p-2 border border-surface-600">
+                    <p className="text-white font-medium text-sm">{payload[0].payload.fullName}</p>
+                    <p className="text-primary-400 font-mono text-sm">{payload[0].value.toFixed(1)}% importance</p>
                   </div>
                 )
               }
@@ -708,60 +708,60 @@ export default function Predictor() {
         </div>
 
         {/* Results Column */}
-        <div className="space-y-3">
-          {/* Price Result - Compact */}
+        <div className="space-y-4">
+          {/* Price Result */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-4"
+            className="glass-card p-5"
           >
             {prediction ? (
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-surface-400 text-xs mb-1">Estimated Price</p>
-                  <div className="text-3xl font-bold gradient-text">
+                  <p className="text-surface-400 text-sm mb-1">Estimated Price</p>
+                  <div className="text-4xl font-bold gradient-text">
                     €{Math.round(prediction.predicted_price).toLocaleString()}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-surface-400 mt-1">
+                  <div className="flex items-center gap-2 text-sm text-surface-400 mt-2">
                     <span>€{Math.round(prediction.price_range.min).toLocaleString()}</span>
                     <span className="text-surface-600">—</span>
                     <span>€{Math.round(prediction.price_range.max).toLocaleString()}</span>
                   </div>
                 </div>
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
                   prediction.confidence === 'high'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                     : prediction.confidence === 'medium'
                     ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     : 'bg-red-500/10 text-red-400 border border-red-500/20'
                 }`}>
-                  {prediction.confidence === 'high' ? <Check className="w-3 h-3" /> : 
-                   prediction.confidence === 'medium' ? <AlertCircle className="w-3 h-3" /> :
-                   <X className="w-3 h-3" />}
+                  {prediction.confidence === 'high' ? <Check className="w-4 h-4" /> : 
+                   prediction.confidence === 'medium' ? <AlertCircle className="w-4 h-4" /> :
+                   <X className="w-4 h-4" />}
                   {prediction.confidence.charAt(0).toUpperCase() + prediction.confidence.slice(1)}
                 </div>
               </div>
             ) : (
-              <div className="text-center py-6">
-                <Calculator className="w-10 h-10 text-surface-600 mx-auto mb-2" />
-                <p className="text-surface-500 text-sm">Configure specs and click "Predict Price"</p>
+              <div className="text-center py-8">
+                <Calculator className="w-12 h-12 text-surface-600 mx-auto mb-3" />
+                <p className="text-surface-500">Configure specs and click "Predict Price"</p>
               </div>
             )}
           </motion.div>
 
           {/* Charts Grid - Side by Side */}
           {prediction && (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               {/* YOUR Price Breakdown (SHAP - Individual) */}
               {prediction.shap_features && prediction.shap_features.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 }}
-                  className="glass-card p-3"
+                  className="glass-card p-4"
                 >
-                  <h3 className="text-white text-sm font-medium mb-1">Your Price Breakdown</h3>
-                  <p className="text-surface-500 text-xs mb-2">
+                  <h3 className="text-white font-medium mb-1">Your Price Breakdown</h3>
+                  <p className="text-surface-400 text-sm mb-3">
                     How features affect YOUR price
                   </p>
                   <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} compact />
@@ -774,10 +774,10 @@ export default function Predictor() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="glass-card p-3"
+                  className="glass-card p-4"
                 >
-                  <h3 className="text-white text-sm font-medium mb-1">Model Importance</h3>
-                  <p className="text-surface-500 text-xs mb-2">
+                  <h3 className="text-white font-medium mb-1">Model Importance</h3>
+                  <p className="text-surface-400 text-sm mb-3">
                     What the model values overall
                   </p>
                   <FeatureImportanceChart features={prediction.top_features} compact />
@@ -786,15 +786,15 @@ export default function Predictor() {
             </div>
           )}
 
-          {/* Compact Config Summary - One line */}
+          {/* Config Summary - One line */}
           {prediction && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="glass-card px-4 py-2"
+              className="glass-card px-4 py-3"
             >
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 <span className="text-surface-500">Config:</span>
                 <span className="text-surface-300">{cpuBrand} {cpuFamily}</span>
                 <span className="text-surface-600">•</span>
