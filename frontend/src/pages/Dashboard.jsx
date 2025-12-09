@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import axios from 'axios'
 import { API_BASE } from '../config'
+import FeedbackWidget from '../components/FeedbackWidget'
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#d946ef', '#06b6d4', '#f59e0b', '#10b981']
 
@@ -499,6 +500,19 @@ export default function Dashboard() {
             </div>
           </motion.div>
         </>
+      )}
+
+      {/* Feedback Widget */}
+      {(statistics || clustering) && (
+        <div className="mt-8">
+          <FeedbackWidget
+            feature="dashboard"
+            context={{
+              tab: activeTab,
+              total_listings: statistics?.total_listings,
+            }}
+          />
+        </div>
       )}
     </div>
   )

@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard'
 import Predictor from './pages/Predictor'
 import SimilarOffers from './pages/SimilarOffers'
 import ChatAdvisor from './pages/ChatAdvisor'
+import Admin from './pages/Admin'
 
 function App() {
   const location = useLocation()
@@ -99,6 +100,7 @@ function App() {
               <Route path="/predict" element={<Predictor />} />
               <Route path="/similar" element={<SimilarOffers />} />
               <Route path="/chat" element={<ChatAdvisor />} />
+              <Route path="/admin" element={<Admin />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

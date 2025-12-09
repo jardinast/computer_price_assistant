@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import axios from 'axios'
 import { API_BASE } from '../config'
+import FeedbackWidget from '../components/FeedbackWidget'
 
 const USE_CASE_INFO = {
   general: { label: 'General Use', icon: Laptop, color: 'primary', description: 'Everyday tasks, browsing, office work' },
@@ -676,6 +677,20 @@ export default function Predictor() {
               </p>
               <FeatureImportanceChart features={prediction.top_features} />
             </motion.div>
+          )}
+
+          {/* Feedback Widget */}
+          {prediction && (
+            <FeedbackWidget
+              feature="predictor"
+              context={{
+                predicted_price: prediction.predicted_price,
+                brand: brand,
+                cpu_family: cpuFamily,
+                ram_gb: ramGb,
+                ssd_gb: ssdGb,
+              }}
+            />
           )}
 
           {/* Selected Config Summary */}
