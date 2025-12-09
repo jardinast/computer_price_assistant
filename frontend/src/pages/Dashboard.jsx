@@ -341,6 +341,18 @@ export default function Dashboard() {
               </div>
             </motion.div>
           </div>
+
+          {/* Feedback Widget for Statistics */}
+          <div className="mt-8">
+            <FeedbackWidget
+              key="statistics-feedback"
+              feature="dashboard-statistics"
+              context={{
+                tab: 'statistics',
+                total_listings: statistics?.total_listings,
+              }}
+            />
+          </div>
         </>
       )}
 
@@ -499,20 +511,19 @@ export default function Dashboard() {
               </table>
             </div>
           </motion.div>
-        </>
-      )}
 
-      {/* Feedback Widget */}
-      {(statistics || clustering) && (
-        <div className="mt-8">
-          <FeedbackWidget
-            feature="dashboard"
-            context={{
-              tab: activeTab,
-              total_listings: statistics?.total_listings,
-            }}
-          />
-        </div>
+          {/* Feedback Widget for Segmentation */}
+          <div className="mt-8">
+            <FeedbackWidget
+              key="segmentation-feedback"
+              feature="dashboard-segmentation"
+              context={{
+                tab: 'segmentation',
+                n_clusters: clustering?.n_clusters,
+              }}
+            />
+          </div>
+        </>
       )}
     </div>
   )
