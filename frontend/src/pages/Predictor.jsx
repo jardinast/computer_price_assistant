@@ -621,6 +621,20 @@ export default function Predictor() {
               <RefreshCw className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Feedback Widget - shown after prediction */}
+          {prediction && (
+            <FeedbackWidget
+              feature="predictor"
+              context={{
+                predicted_price: prediction.predicted_price,
+                brand: brand,
+                cpu_family: cpuFamily,
+                ram_gb: ramGb,
+                ssd_gb: ssdGb,
+              }}
+            />
+          )}
         </div>
 
         {/* Results Column */}
@@ -677,20 +691,6 @@ export default function Predictor() {
               </p>
               <FeatureImportanceChart features={prediction.top_features} />
             </motion.div>
-          )}
-
-          {/* Feedback Widget */}
-          {prediction && (
-            <FeedbackWidget
-              feature="predictor"
-              context={{
-                predicted_price: prediction.predicted_price,
-                brand: brand,
-                cpu_family: cpuFamily,
-                ram_gb: ramGb,
-                ssd_gb: ssdGb,
-              }}
-            />
           )}
 
           {/* Selected Config Summary */}
