@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts'
 import {
   Calculator,
@@ -152,6 +153,63 @@ function CheckboxInput({ label, checked, onChange, description }) {
   )
 }
 
+// Individual Price Breakdown (SHAP values) - shows € contribution for THIS prediction
+function ShapBreakdownChart({ features, basePrice }) {
+  const truncateName = (name, maxLength = 16) => {
+    if (name.length <= maxLength) return name
+    return name.substring(0, maxLength - 1) + '…'
+  }
+
+  const data = features.map((f) => ({
+    name: truncateName(f.readable_name),
+    fullName: f.readable_name,
+    value: f.shap_value,
+    isPositive: f.shap_value >= 0,
+  }))
+
+  return (
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 40 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+          <XAxis 
+            type="number" 
+            stroke="#64748b" 
+            tickFormatter={(v) => `${v >= 0 ? '+' : ''}€${Math.round(v)}`}
+          />
+          <YAxis dataKey="name" type="category" stroke="#64748b" width={110} tick={{ fontSize: 11 }} interval={0} />
+          <Tooltip
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const val = payload[0].value
+                return (
+                  <div className="glass-card p-3 border border-surface-600">
+                    <p className="text-white font-medium">{payload[0].payload.fullName}</p>
+                    <p className={`font-mono ${val >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {val >= 0 ? '+' : ''}€{Math.round(val)} to price
+                    </p>
+                  </div>
+                )
+              }
+              return null
+            }}
+          />
+          <Bar 
+            dataKey="value" 
+            radius={[0, 4, 4, 0]}
+            fill="#10b981"
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.isPositive ? '#10b981' : '#ef4444'} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// Global Feature Importance - shows what the model generally values
 function FeatureImportanceChart({ features }) {
   // Truncate long feature names to prevent overlap
   const truncateName = (name, maxLength = 18) => {
@@ -684,17 +742,33 @@ export default function Predictor() {
             )}
           </motion.div>
 
-          {/* Feature Importance */}
-          {prediction && prediction.top_features && (
+          {/* YOUR Price Breakdown (SHAP - Individual) */}
+          {prediction && prediction.shap_features && prediction.shap_features.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="glass-card p-6"
             >
-              <h3 className="text-white font-medium mb-4">Price Breakdown</h3>
+              <h3 className="text-white font-medium mb-2">Your Price Breakdown</h3>
               <p className="text-surface-400 text-sm mb-4">
-                {prediction.explanation}
+                How each feature affects YOUR predicted price
+              </p>
+              <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} />
+            </motion.div>
+          )}
+
+          {/* Model Feature Importance (Global) */}
+          {prediction && prediction.top_features && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="glass-card p-6"
+            >
+              <h3 className="text-white font-medium mb-2">Model Feature Importance</h3>
+              <p className="text-surface-400 text-sm mb-4">
+                What the model generally considers important
               </p>
               <FeatureImportanceChart features={prediction.top_features} />
             </motion.div>

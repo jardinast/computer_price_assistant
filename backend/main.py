@@ -122,6 +122,7 @@ class PredictionResponse(BaseModel):
     price_max: float
     confidence: str
     top_features: List[Dict[str, Any]]
+    shap_features: List[Dict[str, Any]]  # Local SHAP values for this prediction
     explanation: str
 
 
@@ -259,6 +260,7 @@ async def predict_price(request: PredictionRequest):
             price_max=result['prediccion_max'],
             confidence=result['confidence'],
             top_features=result['top_features'][:10],
+            shap_features=result.get('shap_features', [])[:10],
             explanation=result['explanation_text']
         )
     except Exception as e:

@@ -234,7 +234,7 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
                         use_case: str = 'general',
                         model_path: str = None) -> Dict[str, Any]:
     """
-    Explain the price prediction with feature importances.
+    Explain the price prediction with both global and local (SHAP) feature importances.
 
     Parameters
     ----------
@@ -253,31 +253,25 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
         - prediccion_min: Lower bound (price - 20%)
         - prediccion_max: Upper bound (price + 20%)
         - confidence: 'high', 'medium', or 'low'
-        - top_features: List of top contributing features
+        - top_features: List of top contributing features (global)
+        - shap_features: List of SHAP values for this specific prediction (local)
         - feature_importances: Dict of all feature importances
     """
-    # Get prediction
-    precio = predecir_precio(campos_dict, use_case, model_path)
-
-    # Load model for feature importances
+    # Load model
     modelo_info = _cargar_modelo_si_necesario(model_path)
     model = modelo_info['model']
     feature_cols = modelo_info['feature_cols']
-
-    # Get feature importances from CatBoost
-    try:
-        importances = model.get_feature_importance()
-        feature_importances = dict(zip(feature_cols, importances))
-    except Exception:
-        # Fallback if feature importance not available
-        feature_importances = {col: 1.0 / len(feature_cols) for col in feature_cols}
-
-    # Sort by importance
-    sorted_features = sorted(
-        feature_importances.items(),
-        key=lambda x: abs(x[1]),
-        reverse=True
-    )
+    
+    # Get use case profile
+    profile = USE_CASE_PROFILES.get(use_case, USE_CASE_PROFILES['general'])
+    
+    # Prepare input data (same logic as predecir_precio)
+    merged = {**profile, **campos_dict}
+    input_data = {col: merged.get(col, None) for col in feature_cols}
+    X = pd.DataFrame([input_data])
+    
+    # Make prediction
+    precio = float(max(0, model.predict(X)[0]))
 
     # Create readable feature names
     def readable_name(feature_name: str) -> str:
@@ -300,6 +294,7 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
             '_cpu_cores': 'CPU Cores',
             '_brand': 'Brand',
             '_serie': 'Product Series',
+            'Serie': 'Product Series',
             'cpu_brand': 'CPU Brand',
             'cpu_family': 'CPU Family',
             'gpu_brand': 'GPU Brand',
@@ -311,7 +306,21 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
         }
         return mapping.get(feature_name, feature_name.replace('_', ' ').title())
 
-    # Get top features
+    # Get GLOBAL feature importances from CatBoost
+    try:
+        importances = model.get_feature_importance()
+        feature_importances = dict(zip(feature_cols, importances))
+    except Exception:
+        feature_importances = {col: 1.0 / len(feature_cols) for col in feature_cols}
+
+    # Sort by importance (global)
+    sorted_features = sorted(
+        feature_importances.items(),
+        key=lambda x: abs(x[1]),
+        reverse=True
+    )
+
+    # Get top features (global)
     total_importance = sum(abs(v) for v in feature_importances.values())
     top_features = []
     for feature_name, importance in sorted_features[:10]:
@@ -323,23 +332,63 @@ def explicar_prediccion(campos_dict: Dict[str, Any],
             'importance_pct': importance_pct,
         })
 
+    # Get LOCAL SHAP values for this specific prediction
+    shap_features = []
+    try:
+        # CatBoost's get_feature_importance with ShapValues
+        shap_values = model.get_feature_importance(
+            data=X,
+            type='ShapValues'
+        )
+        # ShapValues returns array of shape (n_samples, n_features + 1)
+        # Last column is the base value (expected value)
+        if len(shap_values) > 0:
+            shap_row = shap_values[0]  # First (and only) sample
+            base_value = shap_row[-1]  # Last element is base value
+            feature_shaps = shap_row[:-1]  # All but last are feature contributions
+            
+            # Create list of (feature, shap_value) and sort by absolute value
+            shap_pairs = list(zip(feature_cols, feature_shaps))
+            shap_pairs_sorted = sorted(shap_pairs, key=lambda x: abs(x[1]), reverse=True)
+            
+            for feature_name, shap_value in shap_pairs_sorted[:10]:
+                shap_features.append({
+                    'feature': feature_name,
+                    'readable_name': readable_name(feature_name),
+                    'shap_value': float(shap_value),  # Actual € contribution
+                    'direction': 'positive' if shap_value > 0 else 'negative',
+                })
+    except Exception as e:
+        # Fallback if SHAP not available - use global importance scaled by price
+        print(f"SHAP calculation failed: {e}")
+        for feat in top_features[:10]:
+            contribution = precio * (feat['importance_pct'] / 100)
+            shap_features.append({
+                'feature': feat['feature'],
+                'readable_name': feat['readable_name'],
+                'shap_value': contribution,
+                'direction': 'positive',
+            })
+
     # Calculate confidence
     confidence = get_confidence_level(campos_dict)
 
-    # Generate explanation text
-    top_3 = top_features[:3]
+    # Generate explanation text from SHAP values
+    top_3_shap = shap_features[:3]
     explanation_parts = []
-    for feat in top_3:
-        explanation_parts.append(f"{feat['readable_name']} ({feat['importance_pct']:.1f}%)")
+    for feat in top_3_shap:
+        sign = '+' if feat['shap_value'] > 0 else ''
+        explanation_parts.append(f"{feat['readable_name']} ({sign}€{feat['shap_value']:.0f})")
 
-    explanation_text = f"Price driven by: {', '.join(explanation_parts)}"
+    explanation_text = f"Price influenced by: {', '.join(explanation_parts)}"
 
     return {
         'prediccion': precio,
         'prediccion_min': precio * 0.80,  # -20% based on MAPE
         'prediccion_max': precio * 1.20,  # +20% based on MAPE
         'confidence': confidence,
-        'top_features': top_features,
+        'top_features': top_features,  # Global feature importance
+        'shap_features': shap_features,  # Local SHAP values for THIS prediction
         'feature_importances': feature_importances,
         'explanation_text': explanation_text,
     }
