@@ -154,13 +154,15 @@ function CheckboxInput({ label, checked, onChange, description }) {
 }
 
 // Individual Price Breakdown (SHAP values) - shows € contribution for THIS prediction
-function ShapBreakdownChart({ features, basePrice }) {
-  const truncateName = (name, maxLength = 16) => {
+function ShapBreakdownChart({ features, basePrice, compact = false }) {
+  const truncateName = (name, maxLength = 14) => {
     if (name.length <= maxLength) return name
     return name.substring(0, maxLength - 1) + '…'
   }
 
-  const data = features.map((f) => ({
+  // Limit to top 6 features for compact view
+  const limitedFeatures = compact ? features.slice(0, 6) : features
+  const data = limitedFeatures.map((f) => ({
     name: truncateName(f.readable_name),
     fullName: f.readable_name,
     value: f.shap_value,
@@ -168,22 +170,23 @@ function ShapBreakdownChart({ features, basePrice }) {
   }))
 
   return (
-    <div className="h-64">
+    <div className={compact ? "h-44" : "h-64"}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 40 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
           <XAxis 
             type="number" 
             stroke="#64748b" 
             tickFormatter={(v) => `${v >= 0 ? '+' : ''}€${Math.round(v)}`}
+            tick={{ fontSize: 10 }}
           />
-          <YAxis dataKey="name" type="category" stroke="#64748b" width={110} tick={{ fontSize: 11 }} interval={0} />
+          <YAxis dataKey="name" type="category" stroke="#64748b" width={95} tick={{ fontSize: 10 }} interval={0} />
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const val = payload[0].value
                 return (
-                  <div className="glass-card p-3 border border-surface-600">
+                  <div className="glass-card p-2 border border-surface-600 text-xs">
                     <p className="text-white font-medium">{payload[0].payload.fullName}</p>
                     <p className={`font-mono ${val >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {val >= 0 ? '+' : ''}€{Math.round(val)} to price
@@ -210,31 +213,33 @@ function ShapBreakdownChart({ features, basePrice }) {
 }
 
 // Global Feature Importance - shows what the model generally values
-function FeatureImportanceChart({ features }) {
+function FeatureImportanceChart({ features, compact = false }) {
   // Truncate long feature names to prevent overlap
-  const truncateName = (name, maxLength = 18) => {
+  const truncateName = (name, maxLength = 14) => {
     if (name.length <= maxLength) return name
     return name.substring(0, maxLength - 1) + '…'
   }
   
-  const data = features.map((f) => ({
+  // Limit to top 6 features for compact view
+  const limitedFeatures = compact ? features.slice(0, 6) : features
+  const data = limitedFeatures.map((f) => ({
     name: truncateName(f.readable_name),
     fullName: f.readable_name,
     importance: f.importance_pct,
   }))
 
   return (
-    <div className="h-64">
+    <div className={compact ? "h-44" : "h-64"}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 20 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 15 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-          <XAxis type="number" stroke="#64748b" tickFormatter={(v) => `${v.toFixed(0)}%`} />
-          <YAxis dataKey="name" type="category" stroke="#64748b" width={120} tick={{ fontSize: 12 }} interval={0} />
+          <XAxis type="number" stroke="#64748b" tickFormatter={(v) => `${v.toFixed(0)}%`} tick={{ fontSize: 10 }} />
+          <YAxis dataKey="name" type="category" stroke="#64748b" width={95} tick={{ fontSize: 10 }} interval={0} />
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="glass-card p-3 border border-surface-600">
+                  <div className="glass-card p-2 border border-surface-600 text-xs">
                     <p className="text-white font-medium">{payload[0].payload.fullName}</p>
                     <p className="text-primary-400 font-mono">{payload[0].value.toFixed(1)}% importance</p>
                   </div>
@@ -703,120 +708,106 @@ export default function Predictor() {
         </div>
 
         {/* Results Column */}
-        <div className="space-y-4">
-          {/* Price Result */}
+        <div className="space-y-3">
+          {/* Price Result - Compact */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6"
+            className="glass-card p-4"
           >
-            <h3 className="text-surface-400 text-sm mb-4">Estimated Price</h3>
             {prediction ? (
-              <div className="text-center">
-                <div className="price-tag-large mb-4 inline-flex">
-                  €{Math.round(prediction.predicted_price).toLocaleString()}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-surface-400 text-xs mb-1">Estimated Price</p>
+                  <div className="text-3xl font-bold gradient-text">
+                    €{Math.round(prediction.predicted_price).toLocaleString()}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-surface-400 mt-1">
+                    <span>€{Math.round(prediction.price_range.min).toLocaleString()}</span>
+                    <span className="text-surface-600">—</span>
+                    <span>€{Math.round(prediction.price_range.max).toLocaleString()}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center gap-2 text-sm text-surface-400 mb-4">
-                  <span>€{Math.round(prediction.price_range.min).toLocaleString()}</span>
-                  <span className="flex-1 h-px bg-surface-700" />
-                  <span>€{Math.round(prediction.price_range.max).toLocaleString()}</span>
-                </div>
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
                   prediction.confidence === 'high'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                     : prediction.confidence === 'medium'
                     ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     : 'bg-red-500/10 text-red-400 border border-red-500/20'
                 }`}>
-                  {prediction.confidence === 'high' ? <Check className="w-4 h-4" /> : 
-                   prediction.confidence === 'medium' ? <AlertCircle className="w-4 h-4" /> :
-                   <X className="w-4 h-4" />}
-                  {prediction.confidence.charAt(0).toUpperCase() + prediction.confidence.slice(1)} Confidence
+                  {prediction.confidence === 'high' ? <Check className="w-3 h-3" /> : 
+                   prediction.confidence === 'medium' ? <AlertCircle className="w-3 h-3" /> :
+                   <X className="w-3 h-3" />}
+                  {prediction.confidence.charAt(0).toUpperCase() + prediction.confidence.slice(1)}
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Calculator className="w-12 h-12 text-surface-600 mx-auto mb-3" />
-                <p className="text-surface-500">Configure specifications and click "Predict Price"</p>
+              <div className="text-center py-6">
+                <Calculator className="w-10 h-10 text-surface-600 mx-auto mb-2" />
+                <p className="text-surface-500 text-sm">Configure specs and click "Predict Price"</p>
               </div>
             )}
           </motion.div>
 
-          {/* YOUR Price Breakdown (SHAP - Individual) */}
-          {prediction && prediction.shap_features && prediction.shap_features.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="glass-card p-6"
-            >
-              <h3 className="text-white font-medium mb-2">Your Price Breakdown</h3>
-              <p className="text-surface-400 text-sm mb-4">
-                How each feature affects YOUR predicted price
-              </p>
-              <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} />
-            </motion.div>
+          {/* Charts Grid - Side by Side */}
+          {prediction && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              {/* YOUR Price Breakdown (SHAP - Individual) */}
+              {prediction.shap_features && prediction.shap_features.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 }}
+                  className="glass-card p-3"
+                >
+                  <h3 className="text-white text-sm font-medium mb-1">Your Price Breakdown</h3>
+                  <p className="text-surface-500 text-xs mb-2">
+                    How features affect YOUR price
+                  </p>
+                  <ShapBreakdownChart features={prediction.shap_features} basePrice={prediction.predicted_price} compact />
+                </motion.div>
+              )}
+
+              {/* Model Feature Importance (Global) */}
+              {prediction.top_features && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="glass-card p-3"
+                >
+                  <h3 className="text-white text-sm font-medium mb-1">Model Importance</h3>
+                  <p className="text-surface-500 text-xs mb-2">
+                    What the model values overall
+                  </p>
+                  <FeatureImportanceChart features={prediction.top_features} compact />
+                </motion.div>
+              )}
+            </div>
           )}
 
-          {/* Model Feature Importance (Global) */}
-          {prediction && prediction.top_features && (
+          {/* Compact Config Summary - One line */}
+          {prediction && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="glass-card p-6"
+              className="glass-card px-4 py-2"
             >
-              <h3 className="text-white font-medium mb-2">Model Feature Importance</h3>
-              <p className="text-surface-400 text-sm mb-4">
-                What the model generally considers important
-              </p>
-              <FeatureImportanceChart features={prediction.top_features} />
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span className="text-surface-500">Config:</span>
+                <span className="text-surface-300">{cpuBrand} {cpuFamily}</span>
+                <span className="text-surface-600">•</span>
+                <span className="text-surface-300">{ramGb}GB RAM</span>
+                <span className="text-surface-600">•</span>
+                <span className="text-surface-300">{ssdGb >= 1000 ? `${ssdGb / 1000}TB` : `${ssdGb}GB`} SSD</span>
+                <span className="text-surface-600">•</span>
+                <span className="text-surface-300">{gpuIntegrated ? 'Integrated GPU' : gpuSeries}</span>
+                <span className="text-surface-600">•</span>
+                <span className="text-surface-300">{screenSize}"</span>
+              </div>
             </motion.div>
           )}
-
-          {/* Selected Config Summary */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="glass-card p-6"
-          >
-            <h3 className="text-white font-medium mb-4">Configuration Summary</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-surface-400">Use Case</span>
-                <span className="text-surface-200">{USE_CASE_INFO[useCase].label}</span>
-              </div>
-              {brand && (
-                <div className="flex justify-between">
-                  <span className="text-surface-400">Brand</span>
-                  <span className="text-surface-200">{brand}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-surface-400">Processor</span>
-                <span className="text-surface-200">{cpuBrand} {cpuFamily}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-surface-400">Graphics</span>
-                <span className="text-surface-200">
-                  {gpuIntegrated ? 'Integrated' : gpuSeries}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-surface-400">RAM</span>
-                <span className="text-surface-200">{ramGb} GB</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-surface-400">Storage</span>
-                <span className="text-surface-200">{ssdGb >= 1000 ? `${ssdGb / 1000} TB` : `${ssdGb} GB`} SSD</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-surface-400">Screen</span>
-                <span className="text-surface-200">{screenSize}" @ {refreshRate}Hz</span>
-              </div>
-            </div>
-          </motion.div>
 
           {/* Error Display */}
           {error && (
