@@ -15,6 +15,19 @@ const QUICK_PROMPTS = [
   { label: 'Student Budget', text: 'I need an affordable laptop for school' },
 ]
 
+// Simple markdown renderer for bold text
+function renderMarkdown(text) {
+  if (!text) return text
+  // Replace **text** with bold
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
 async function fetchGreeting() {
   const { data } = await API.get('/chat/greeting')
   return data
@@ -176,7 +189,7 @@ export default function ChatAdvisor() {
                   : 'bg-surface-800 text-surface-100'
               }`}
             >
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              <div className="whitespace-pre-wrap">{renderMarkdown(message.content)}</div>
             </div>
           </div>
         ))}

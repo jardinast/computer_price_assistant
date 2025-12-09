@@ -406,7 +406,6 @@ export default function Dashboard() {
                     type="number"
                     dataKey="price"
                     name="Price"
-                    unit=" €"
                     stroke="#64748b"
                     tickFormatter={(v) => `€${v}`}
                   />
@@ -501,4 +500,6 @@ export default function Dashboard() {
     </div>
   )
 }
+
+
 

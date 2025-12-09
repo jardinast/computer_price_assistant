@@ -91,7 +91,7 @@ function OfferCard({ offer, predictedPrice, index }) {
         {offer.screen_inches && (
           <div className="text-center p-2 bg-surface-800/50 rounded-lg">
             <p className="text-surface-500 text-xs mb-1">Screen</p>
-            <p className="text-surface-200 font-medium">{offer.screen_inches}"</p>
+            <p className="text-surface-200 font-medium">{Number(offer.screen_inches).toFixed(1)}"</p>
           </div>
         )}
       </div>
@@ -420,7 +420,7 @@ export default function SimilarOffers() {
                       : `${results.target_features?.ssd_gb} GB`} SSD
                   </span>
                   <span className="px-3 py-1 bg-surface-800 rounded-lg text-surface-200">
-                    {results.target_features?.screen_inches}"
+                    {results.target_features?.screen_inches ? Number(results.target_features.screen_inches).toFixed(1) : ''}"
                   </span>
                 </div>
               </div>
@@ -473,4 +473,6 @@ export default function SimilarOffers() {
     </div>
   )
 }
+
+
 
