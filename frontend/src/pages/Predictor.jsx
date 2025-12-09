@@ -472,7 +472,7 @@ export default function Predictor() {
           className="mb-6"
         >
           {/* Top row: Price + Config Summary + Toggle Button */}
-          <div className="flex flex-wrap items-start gap-4 mb-4">
+          <div className="flex flex-wrap items-stretch gap-4 mb-4">
             {/* Price Card */}
             <div className="glass-card p-5 flex-1 min-w-[200px]">
               <p className="text-surface-400 text-sm mb-1">Estimated Price</p>
@@ -532,7 +532,7 @@ export default function Predictor() {
             {/* Toggle Config Button */}
             <button
               onClick={() => setShowConfig(!showConfig)}
-              className="btn-secondary px-4 py-3 flex items-center gap-2"
+              className="btn-secondary px-4 py-3 flex items-center gap-2 self-start"
             >
               <Sliders className="w-4 h-4" />
               {showConfig ? 'Hide Config' : 'Modify Config'}
@@ -858,5 +858,4 @@ export default function Predictor() {
     </div>
   )
 }
-
 
