@@ -238,12 +238,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
   @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
 }
 
+.cluster-badge.ultra-premium {
+  @apply bg-rose-500/10 text-rose-400 border border-rose-500/20;
+}
+
 .cluster-badge.high-end {
   @apply bg-amber-500/10 text-amber-400 border border-amber-500/20;
 }
 
-.cluster-badge.premium {
-  @apply bg-purple-500/10 text-purple-400 border border-purple-500/20;
+.cluster-badge.performance {
+  @apply bg-cyan-500/10 text-cyan-400 border border-cyan-500/20;
 }
 
 .cluster-badge.mid-range {
@@ -252,6 +256,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .cluster-badge.budget {
   @apply bg-green-500/10 text-green-400 border border-green-500/20;
+}
+
+.cluster-badge.premium {
+  @apply bg-purple-500/10 text-purple-400 border border-purple-500/20;
 }
 
 .cluster-badge.entry-level {
