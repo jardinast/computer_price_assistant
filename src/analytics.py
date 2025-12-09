@@ -557,8 +557,8 @@ def get_clustering_summary(max_points: int = 500) -> Dict[str, Any]:
             continue
 
         avg_price = subset['_precio_medio'].dropna().mean() if '_precio_medio' in subset else 0
-        avg_ram = subset['_ram_gb'].dropna().mean() if '_ram_gb' in subset else 0
-        avg_ssd = subset['_ssd_gb'].dropna().mean() if '_ssd_gb' in subset else 0
+        avg_ram = subset['_ram_gb'].dropna().median() if '_ram_gb' in subset else 0
+        avg_ssd = subset['_ssd_gb'].dropna().median() if '_ssd_gb' in subset else 0
         avg_screen = subset['_screen_size'].dropna().mean() if '_screen_size' in subset else 0
 
         label = 'Entry-Level'
